@@ -1,4 +1,4 @@
-﻿using BookStore.DataAccess;
+﻿using BookStore.DataAccess.Repository.IRepository;
 using BookStore.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,116 +6,123 @@ namespace BookStoreWeb.Controllers
 {
     public class CategoryController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ICategoryRepository _context;
 
-        public CategoryController(ApplicationDbContext context)
+        public CategoryController(ICategoryRepository context)
         {
             _context = context;
         }
 
         public IActionResult Index()
         {
-            return View(_context.Categories);
+            return View(_context.GetAll());
         }
-        public ActionResult Create()
+
+        public IActionResult Create()
         {
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(Category category)
+        public IActionResult Create(Category category)
         {
             if (category.Name == category.DisplayOrder.ToString())
             {
                 ModelState.AddModelError("name", "Naam en Volgnummer mogen niet hetzelfde zijn");
             }
-            if (_context.Categories.Any(c => c.Name == category.Name))
+
+            if (_context.GetFirstOrDefault(c => c.Name == category.Name) != null)
             {
-                ModelState.AddModelError("uniquename", "Deze categorie bestaat al");
+                ModelState.AddModelError("uniquename", "Deze categorienaam bestaat al");
             }
+
             if (ModelState.IsValid)
             {
-                _context.Categories.Add(category);
                 try
                 {
-                    _context.SaveChanges();
-                    TempData["result"] = $"Categorie {category.Name} succesvol toegevoegd.";
+                    _context.Add(category);
+                    _context.Save();
+                    TempData["result"] = "Categorie succesvol toegevoegd.";
+                    return RedirectToAction("Index");
                 }
                 catch (Exception ex)
                 {
                     ViewBag.Error = "Er is een probleem met de database!";
                     return View(category);
                 }
-                return RedirectToAction("Index");
             }
             return View(category);
         }
+
         public IActionResult Edit(int? id)
         {
             if (id == null || id == 0)
             {
                 return NotFound();
             }
-            var category = _context.Categories.Find(id);
+            Category category = _context.GetFirstOrDefault(c => c.Id == id);
             if (category == null)
             {
                 return NotFound();
             }
             return View(category);
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(Category category)
+        public IActionResult Edit(Category category)
         {
             if (category.Name == category.DisplayOrder.ToString())
             {
                 ModelState.AddModelError("name", "Naam en Volgnummer mogen niet hetzelfde zijn");
             }
+
             if (ModelState.IsValid)
             {
-                _context.Categories.Update(category);
                 try
                 {
-                    _context.SaveChanges();
-                    TempData["result"] = $"Categorie {category.Name} succesvol gewijzigd.";
+                    _context.Update(category);
+                    _context.Save();
+                    TempData["result"] = "Categorie succesvol gewijzigd.";
+                    return RedirectToAction("Index");
                 }
                 catch (Exception ex)
                 {
                     ViewBag.Error = "Er is een probleem met de database!";
                     return View(category);
                 }
-                return RedirectToAction("Index");
             }
             return View(category);
         }
-        public ActionResult Delete(int? id)
+
+        public IActionResult Delete(int? id)
         {
             if (id == null || id == 0)
             {
                 return NotFound();
             }
-            Category category = _context.Categories.Find(id);
+            Category category = _context.GetFirstOrDefault(c => c.Id == id);
             if (category == null)
             {
                 return NotFound();
             }
             return View(category);
         }
+
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult ConfirmDelete(Category category)
+        public IActionResult ConfirmDelete(Category category)
         {
-            _context.Categories.Remove(category);
             try
             {
-                _context.SaveChanges();
-                TempData["result"] = $"Categorie {category.Name} succesvol verweiderd.";
+                _context.Remove(category);
+                _context.Save();
+                TempData["result"] = "Categorie succesvol verwijderd.";
             }
             catch (Exception ex)
             {
                 ViewBag.Error = "Er is een probleem met de database!";
-                return View(category);
+                return View("Delete", category);
             }
             return RedirectToAction("Index");
         }
