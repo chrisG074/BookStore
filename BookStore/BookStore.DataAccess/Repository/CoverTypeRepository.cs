@@ -1,5 +1,5 @@
 ﻿using BookStore.DataAccess.Repository.IRepository;
-using BookStore.Models; // Zorg dat je BookStore.Models toevoegt
+using BookStore.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,18 +8,18 @@ using System.Threading.Tasks;
 
 namespace BookStore.DataAccess.Repository
 {
-    public class CategoryRepository : Repository<Category>, ICategoryRepository
+    public class CoverTypeRepository : Repository<CoverType>, ICoverTypeRepository
     {
         private ApplicationDbContext _context;
 
-        public CategoryRepository(ApplicationDbContext context) : base(context)
+        public CoverTypeRepository(ApplicationDbContext context) : base(context)
         {
             _context = context;
         }
 
-        public void Update(Category obj)
+        public void Update(CoverType obj)
         {
-            _context.Categories.Update(obj);
+            _context.CoverTypes.Update(obj);
         }
     }
 }
