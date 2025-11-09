@@ -2,24 +2,24 @@
 using BookStore.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BookStoreWeb.Controllers
+namespace BookStoreWeb.Areas.Admin.Controllers
 {
-    public class CoverTypeController : Controller
+    [Area("Admin")]
+    public class CategoryController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ICoverTypeRepository _coverTypeRepository;
 
-        public CoverTypeController(IUnitOfWork context)
+        private readonly ICategoryRepository _categoryRepository;
+
+        public CategoryController(IUnitOfWork context)
         {
             _unitOfWork = context;
-            _coverTypeRepository = _unitOfWork.CoverType;
+            _categoryRepository = _unitOfWork.Category;
         }
-
         public IActionResult Index()
         {
-            return View(_coverTypeRepository.GetAll());
+            return View(_categoryRepository.GetAll());
         }
-
         public IActionResult Create()
         {
             return View();
@@ -27,29 +27,34 @@ namespace BookStoreWeb.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(CoverType coverType)
+        public IActionResult Create(Category category)
         {
-            if (_coverTypeRepository.GetFirstOrDefault(c => c.Name == coverType.Name) != null)
+            if (category.Name == category.DisplayOrder.ToString())
             {
-                ModelState.AddModelError("Name", "Deze kaftsoort bestaat al");
+                ModelState.AddModelError("name", "Naam en Volgnummer mogen niet hetzelfde zijn");
+            }
+
+            if (_categoryRepository.GetFirstOrDefault(c => c.Name == category.Name) != null)
+            {
+                ModelState.AddModelError("uniquename", "Deze categorienaam bestaat al");
             }
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _coverTypeRepository.Add(coverType);
+                    _categoryRepository.Add(category);
                     _unitOfWork.Save();
-                    TempData["result"] = "Kaftsoort succesvol toegevoegd.";
+                    TempData["result"] = "Categorie succesvol toegevoegd.";
                     return RedirectToAction("Index");
                 }
                 catch (Exception ex)
                 {
                     ViewBag.Error = "Er is een probleem met de database!";
-                    return View(coverType);
+                    return View(category);
                 }
             }
-            return View(coverType);
+            return View(category);
         }
 
         public IActionResult Edit(int? id)
@@ -58,34 +63,39 @@ namespace BookStoreWeb.Controllers
             {
                 return NotFound();
             }
-            CoverType coverType = _coverTypeRepository.GetFirstOrDefault(c => c.Id == id);
-            if (coverType == null)
+            Category category = _categoryRepository.GetFirstOrDefault(c => c.Id == id);
+            if (category == null)
             {
                 return NotFound();
             }
-            return View(coverType);
+            return View(category);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(CoverType coverType)
+        public IActionResult Edit(Category category)
         {
+            if (category.Name == category.DisplayOrder.ToString())
+            {
+                ModelState.AddModelError("name", "Naam en Volgnummer mogen niet hetzelfde zijn");
+            }
+
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _coverTypeRepository.Update(coverType);
+                    _categoryRepository.Update(category);
                     _unitOfWork.Save();
-                    TempData["result"] = "Kaftsoort succesvol gewijzigd.";
+                    TempData["result"] = "Categorie succesvol gewijzigd.";
                     return RedirectToAction("Index");
                 }
                 catch (Exception ex)
                 {
                     ViewBag.Error = "Er is een probleem met de database!";
-                    return View(coverType);
+                    return View(category);
                 }
             }
-            return View(coverType);
+            return View(category);
         }
 
         public IActionResult Delete(int? id)
@@ -94,27 +104,27 @@ namespace BookStoreWeb.Controllers
             {
                 return NotFound();
             }
-            CoverType coverType = _coverTypeRepository.GetFirstOrDefault(c => c.Id == id);
-            if (coverType == null)
+            Category category = _categoryRepository.GetFirstOrDefault(c => c.Id == id);
+            if (category == null)
             {
                 return NotFound();
             }
-            return View(coverType);
+            return View(category);
         }
 
         [HttpPost]
-        public IActionResult ConfirmDelete(CoverType coverType)
+        public IActionResult ConfirmDelete(Category category)
         {
             try
             {
-                _coverTypeRepository.Remove(coverType);
+                _categoryRepository.Remove(category);
                 _unitOfWork.Save();
-                TempData["result"] = "Kaftsoort succesvol verwijderd.";
+                TempData["result"] = "Categorie succesvol verwijderd.";
             }
             catch (Exception ex)
             {
                 ViewBag.Error = "Er is een probleem met de database!";
-                return View("Delete", coverType);
+                return View("Delete", category);
             }
             return RedirectToAction("Index");
         }
