@@ -14,7 +14,7 @@ namespace BookStoreWeb.Areas.Admin.Controllers
         private readonly IProductRepository _productRepository;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public ProductController(IUnitOfWork context)
+        public ProductController(IUnitOfWork context, IWebHostEnvironment webHostEnvironment)
         {
             _unitOfWork = context;
             _productRepository = _unitOfWork.Product;
@@ -118,5 +118,13 @@ namespace BookStoreWeb.Areas.Admin.Controllers
                 return View(productVM);
             }
         }
+        #region API Calls
+        [HttpGet]
+        public IActionResult GetAll()
+        {
+            var productList = _unitOfWork.Product.GetAll();
+            return Json(new { data = productList });
+        }
+        #endregion
     }
 }

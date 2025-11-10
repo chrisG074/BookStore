@@ -20,6 +20,7 @@ namespace BookStore.DataAccess.Repository
             _context = context;
             Category = new CategoryRepository(_context);
             CoverType = new CoverTypeRepository(_context);
+            Product = new ProductRepository(_context);
         }
 
         public void Save()
